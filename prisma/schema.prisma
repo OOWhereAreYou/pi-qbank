@@ -7,3 +7,20 @@ datasource db {
     provider = "postgresql"
     url      = env("DATABASE_URL")
 }
+
+model User {
+    id           String       @id @default(cuid())
+    username     String?      @unique
+    passwordHash String?
+    role         UserRoleType @default(USER)
+
+    // 状态
+    status    Int      @default(1)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+enum UserRoleType {
+    USER
+    ADMIN
+}
