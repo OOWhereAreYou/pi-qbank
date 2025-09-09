@@ -24,3 +24,96 @@ enum UserRoleType {
     USER
     ADMIN
 }
+
+model Question {
+    id              String        @id @default(cuid())
+    // 题干
+    content         String
+    // 解析
+    analysis        String?
+    //题型
+    type            QuestionType?
+    //不同题型的元信息，比如单选、多选、不定项有选项，判断题有对错，填空题有答案，简答题没有
+    meta            Json?
+    // 难度等级：难中易
+    difficulty      Int           @default(1) // 1.易 2.中 3.难
+    // 知识点
+    knowledgePoints String[]      @default([])
+    // 标签，使用 String[] 即可 
+    tags            String[]      @default([])
+    // 题目来源
+    source          String?
+    // 年级
+    grade           Int?
+    // 科目
+    subject         String?
+
+    // --- 子母题的自关联实现 ---
+    // 子题指向父题的外键
+    parentId String?
+    // 父题关系 (一个子题只有一个父题)
+    parent   Question?  @relation("SubQuestions", fields: [parentId], references: [id])
+    // 子题列表 (一个父题可以有多个子题)
+    children Question[] @relation("SubQuestions")
+
+    // 状态
+    status    Int      @default(1)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    paperQuestions PaperQuestion[]
+}
+
+enum QuestionType {
+    //单选、多选、不定项、判断、填空、简答、复合题（带小题的）
+    SINGLE
+    MULTIPLE
+    INDEFINITE
+    JUDGEMENT
+    FILL
+    ESSAY
+    COMPOUND
+}
+
+model Paper {
+    id          String   @id @default(cuid())
+    // 试卷名称
+    name        String
+    // 试卷描述
+    description String?
+    // 试卷总分
+    score       Int      @default(100)
+    // 试卷结构
+    structure   Json?
+    // 试卷难度
+    difficulty  Int      @default(1) // 1.易 2.中 3.难
+    // 标签
+    tags        String[] @default([])
+    // 适用年级
+    grade       Int?
+    // 适用科目
+    subject     String?
+
+    // 状态
+    status    Int      @default(1)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    paperQuestions PaperQuestion[]
+}
+
+model PaperQuestion {
+    paperId          String
+    questionId       String
+    questionSnapshot Json //题目快照
+
+    // 关联
+    paper    Paper    @relation(fields: [paperId], references: [id])
+    question Question @relation(fields: [questionId], references: [id])
+
+    status    Int      @default(1)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@id([paperId, questionId])
+}

@@ -4,7 +4,6 @@ import { z } from "zod";
 
 import { auth, signIn, signOut } from "./auth";
 import { AuthUser } from "./auth.config";
-import { AuthService } from "@/server/service/auth";
 
 export const getAuthUser = async () => {
   const _auth = await auth();
