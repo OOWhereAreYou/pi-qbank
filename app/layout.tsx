@@ -3,6 +3,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 
 import { Toaster } from "sonner";
+import { DialogProvider } from "@/components/hooks/use-dialog";
 
 export const metadata: Metadata = {
   title: "题库系统",
@@ -16,7 +17,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh" suppressHydrationWarning>
-      {/* ico */}
       <link rel="icon" href="/globe.svg" />
       <body className={`antialiased`}>
         <ThemeProvider
@@ -25,8 +25,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
-          <Toaster />
+          <DialogProvider>
+            {children}
+            <Toaster />
+          </DialogProvider>
         </ThemeProvider>
       </body>
     </html>

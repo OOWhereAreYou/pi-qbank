@@ -21,6 +21,18 @@ export type QuestionOption = {
 };
 
 const QuestionServiceBase = {
+  get: async (id: string) => {
+    const question = await prisma.question.findUnique({
+      where: { id },
+      include: {
+        children: true,
+      },
+    });
+    if (!question) {
+      throw new Error("题目不存在");
+    }
+    return question as PopulatedQuestion;
+  },
   create: async (data: Prisma.QuestionCreateInput) => {
     return await prisma.question.create({
       data,
