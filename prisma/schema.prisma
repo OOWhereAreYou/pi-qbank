@@ -28,7 +28,7 @@ enum UserRoleType {
 model Question {
     id              String        @id @default(cuid())
     // 题干
-    content         String
+    content         String?
     // 解析
     analysis        String?
     //题型
@@ -36,7 +36,7 @@ model Question {
     //不同题型的元信息，比如单选、多选、不定项有选项，判断题有对错，填空题有答案，简答题没有
     meta            Json?
     // 难度等级：难中易
-    difficulty      Int           @default(1) // 1.易 2.中 3.难
+    difficulty      Int? // 1.易 2.中 3.难
     // 知识点
     knowledgePoints String[]      @default([])
     // 标签，使用 String[] 即可 

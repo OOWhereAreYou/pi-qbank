@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, UseFormReturn } from "react-hook-form";
 import { QuestionType } from "@prisma/client";
 import React, { forwardRef, useImperativeHandle } from "react";
 
@@ -24,6 +24,8 @@ import {
 import { questionTypeNames } from "@/lib/enum";
 import { questionFormSchema, QuestionFormValues } from "./schema";
 
+type QuestionFormType = UseFormReturn<QuestionFormValues>;
+
 export interface QuestionFormProps {
   initialData?: Partial<QuestionFormValues> | null;
 }
@@ -31,6 +33,7 @@ export interface QuestionFormProps {
 export interface QuestionFormRef {
   getValues: () => QuestionFormValues;
   triggerValidate: () => Promise<boolean>;
+  form: () => QuestionFormType;
 }
 
 // =======================================================================
@@ -42,8 +45,8 @@ const ChoiceOptionsForm = ({
   form,
   namePrefix,
 }: {
-  form: any;
-  namePrefix: string;
+  form: QuestionFormType;
+  namePrefix: "meta" | `children.${number}.meta`;
 }) => {
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -57,12 +60,12 @@ const ChoiceOptionsForm = ({
       {fields.map((field, index) => (
         <div key={field.id} className="flex items-center gap-4">
           <InputForm
-            name={`${namePrefix}.options.${index}.content`}
+            name={`${namePrefix}.options.${index}.label`}
             placeholder={`选项 ${index + 1}`}
             className="flex-grow"
           />
           <CheckboxForm
-            name={`${namePrefix}.options.${index}.isCorrect`}
+            name={`${namePrefix}.options.${index}.isAnswer`}
             label="正确"
           />
           <Button
@@ -80,7 +83,7 @@ const ChoiceOptionsForm = ({
         variant="outline"
         size="sm"
         className="mt-2"
-        onClick={() => append({ content: "", isCorrect: false })}
+        onClick={() => append({ label: "", isAnswer: false })}
       >
         添加选项
       </Button>
@@ -102,67 +105,32 @@ const JudgementAnswerForm = ({ namePrefix }: { namePrefix: string }) => (
   <SelectForm
     name={`${namePrefix}.answer`}
     label="正确答案"
-    valueType="boolean"
     options={[
-      { value: "true", label: "正确" },
-      { value: "false", label: "错误" },
+      { value: "正确", label: "正确" },
+      { value: "错误", label: "错误" },
     ]}
   />
 );
 
 // 用于填空题的答案组件
-const FillAnswerForm = ({
-  form,
-  namePrefix,
-}: {
-  form: any;
-  namePrefix: string;
-}) => {
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: `${namePrefix}.answers`,
-  });
-
-  return (
-    <div className="space-y-4 rounded-md border p-4">
-      <FormLabel>填空答案</FormLabel>
-      <FormDescription>每个输入框代表一个需要填写的空。</FormDescription>
-      {fields.map((field, index) => (
-        <div key={field.id} className="flex items-center gap-4">
-          <InputForm
-            name={`${namePrefix}.answers.${index}.value`}
-            placeholder={`答案 ${index + 1}`}
-            className="flex-grow"
-          />
-          <Button
-            type="button"
-            variant="destructive"
-            size="sm"
-            onClick={() => remove(index)}
-          >
-            删除
-          </Button>
-        </div>
-      ))}
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        className="mt-2"
-        onClick={() => append({ value: "" })}
-      >
-        添加答案
-      </Button>
-    </div>
-  );
-};
+const FillAnswerForm = ({ namePrefix }: { namePrefix: string }) => (
+  <div className="space-y-4">
+    <FormLabel>填空答案</FormLabel>
+    <FormDescription>如果答案有多个空, 请用分号 (;) 隔开。</FormDescription>
+    <TextareaForm
+      name={`${namePrefix}.answer`}
+      placeholder="请输入答案"
+      rows={3}
+    />
+  </div>
+);
 
 // 单一题目的详细信息表单（题干、答案、解析）
 const SimpleQuestionDetails = ({
   form,
   type,
 }: {
-  form: any;
+  form: QuestionFormType;
   type: QuestionType;
 }) => {
   return (
@@ -179,7 +147,7 @@ const SimpleQuestionDetails = ({
         <ChoiceOptionsForm form={form} namePrefix="meta" />
       )}
       {type === "JUDGEMENT" && <JudgementAnswerForm namePrefix="meta" />}
-      {type === "FILL" && <FillAnswerForm form={form} namePrefix="meta" />}
+      {type === "FILL" && <FillAnswerForm namePrefix="meta" />}
 
       <TextareaForm
         name="analysis"
@@ -192,10 +160,10 @@ const SimpleQuestionDetails = ({
 };
 
 // 复合题的子题列表组件
-const SubQuestionList = ({ form }: { form: any }) => {
+const SubQuestionList = ({ form }: { form: QuestionFormType }) => {
   const { fields, append, remove } = useFieldArray({
     control: form.control,
-    name: "subQuestions",
+    name: "children",
   });
 
   // 子题不能是复合题
@@ -237,7 +205,7 @@ const SubQuestionList = ({ form }: { form: any }) => {
       </div>
       <FormField
         control={form.control}
-        name="subQuestions"
+        name="children"
         render={() => (
           <FormItem>
             <FormMessage />
@@ -255,12 +223,12 @@ const SubQuestionItem = ({
   onRemove,
   options,
 }: {
-  form: any;
+  form: QuestionFormType;
   index: number;
   onRemove: () => void;
-  options: any[];
+  options: { value: string; label: string }[];
 }) => {
-  const questionType = form.watch(`subQuestions.${index}.type`);
+  const questionType = form.watch(`children.${index}.type`);
 
   return (
     <div className="space-y-6 rounded-md border bg-slate-50 p-6">
@@ -276,13 +244,13 @@ const SubQuestionItem = ({
         </Button>
       </div>
       <SelectForm
-        name={`subQuestions.${index}.type`}
+        name={`children.${index}.type`}
         label="题型"
         placeholder="请选择题型"
         options={options}
       />
       <TextareaForm
-        name={`subQuestions.${index}.content`}
+        name={`children.${index}.content`}
         label="题干"
         placeholder="请输入子题题干"
         rows={3}
@@ -291,20 +259,17 @@ const SubQuestionItem = ({
       {(questionType === "SINGLE" ||
         questionType === "MULTIPLE" ||
         questionType === "INDEFINITE") && (
-        <ChoiceOptionsForm
-          form={form}
-          namePrefix={`subQuestions.${index}.meta`}
-        />
+        <ChoiceOptionsForm form={form} namePrefix={`children.${index}.meta`} />
       )}
       {questionType === "JUDGEMENT" && (
-        <JudgementAnswerForm namePrefix={`subQuestions.${index}.meta`} />
+        <JudgementAnswerForm namePrefix={`children.${index}.meta`} />
       )}
       {questionType === "FILL" && (
-        <FillAnswerForm form={form} namePrefix={`subQuestions.${index}.meta`} />
+        <FillAnswerForm namePrefix={`children.${index}.meta`} />
       )}
 
       <TextareaForm
-        name={`subQuestions.${index}.analysis`}
+        name={`children.${index}.analysis`}
         label="解析"
         placeholder="请输入题目解析"
         rows={3}
@@ -329,6 +294,7 @@ export const QuestionForm = forwardRef<QuestionFormRef, QuestionFormProps>(
     useImperativeHandle(ref, () => ({
       getValues: () => form.getValues(),
       triggerValidate: () => form.trigger(),
+      form: () => form,
     }));
 
     // 监听主题型的变化
@@ -402,7 +368,7 @@ export const QuestionForm = forwardRef<QuestionFormRef, QuestionFormProps>(
           )}
 
           {/* Case 2: 如果是简单题 */}
-          {mainQuestionType !== QuestionType.COMPOUND && (
+          {mainQuestionType && mainQuestionType !== QuestionType.COMPOUND && (
             <SimpleQuestionDetails form={form} type={mainQuestionType} />
           )}
         </form>

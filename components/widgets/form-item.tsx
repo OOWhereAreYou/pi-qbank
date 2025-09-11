@@ -131,7 +131,11 @@ export const SelectForm = ({
                 field.onChange(value);
               }
             }}
-            value={field.value === undefined ? "" : String(field.value)}
+            value={
+              field.value === undefined || field.value === null
+                ? ""
+                : String(field.value)
+            }
             {...props}
           >
             <FormControl>
@@ -286,9 +290,6 @@ export const TagsForm = ({
               onChange={(e) => {
                 const inputValue = e.target.value;
                 let newTags = inputValue.split(/[,，]/);
-
-                // Only filter out empty strings if the input does NOT end with a comma.
-                // This allows a trailing comma to be visible.
                 if (!(inputValue.endsWith(",") || inputValue.endsWith("，"))) {
                   newTags = newTags.filter(Boolean);
                 }

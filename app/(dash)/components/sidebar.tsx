@@ -76,23 +76,27 @@ export const DashSidebar: FC<DashSidebarProps> = ({ isCollapsed }) => {
   };
 
   return (
-    <div
-      className={`h-full border-r bg-background transition-all duration-300 ${
-        isCollapsed ? "w-20" : "w-64"
-      }`}
-    >
-      <div className="flex h-16 items-center justify-center border-b bg-background px-6">
-        <h1
-          className={`text-lg font-bold transition-opacity ${
-            isCollapsed ? "opacity-0" : "opacity-100"
-          }`}
-        >
-          Pi QBank
-        </h1>
+    <div>
+      {/* style 设置 scroll bar的宽度为0 */}
+
+      <div
+        className={`fixed top-0 left-0 h-screen overflow-scroll border-r bg-background transition-all duration-300 ${
+          isCollapsed ? "w-20" : "w-64"
+        }`}
+      >
+        <div className="flex h-16 items-center justify-center border-b bg-background px-6">
+          <h1
+            className={`text-lg font-bold transition-opacity ${
+              isCollapsed ? "opacity-0" : "opacity-100"
+            }`}
+          >
+            Pi QBank
+          </h1>
+        </div>
+        <nav className="flex flex-col p-4">
+          <ul className="space-y-2">{menuItems.map(renderMenuItem)}</ul>
+        </nav>
       </div>
-      <nav className="flex flex-col p-4">
-        <ul className="space-y-2">{menuItems.map(renderMenuItem)}</ul>
-      </nav>
     </div>
   );
 };

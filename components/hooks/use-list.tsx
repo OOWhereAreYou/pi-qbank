@@ -36,7 +36,7 @@ export const useList = <T,>({
   const [pageSize, setPageSize] = useState(options?.pageSize ?? PAGE_SIZE);
   const [current, setCurrent] = useState(options?.current ?? 1);
 
-  const fetch = async (p?: number, pSize?: number, term?: string) => {
+  const fetch = async (p?: number, pSize?: number, term?: string | null) => {
     if (loading || (p && p < 1)) {
       return;
     }
@@ -45,14 +45,16 @@ export const useList = <T,>({
       const res = await fetcher(
         p ?? current,
         pSize ?? pageSize,
-        term ?? searchTerm
+        term === null ? undefined : term ?? searchTerm
       );
       if (res.data) {
         setData(res.data);
         setPageSize(pSize ?? pageSize);
         setCurrent(p ?? current);
-        setSearchTerm(term ?? searchTerm);
+        setSearchTerm(term === null ? undefined : term ?? searchTerm);
       }
+
+      console.log(res);
       return res;
     } finally {
       setLoading(false);
@@ -69,7 +71,7 @@ export const useList = <T,>({
     return fetch();
   };
 
-  const onSearch = (txt?: string) => {
+  const onSearch = (txt?: string | null) => {
     return fetch(undefined, undefined, txt);
   };
 

@@ -11,12 +11,12 @@ export const menuItems: MenuItem[] = [
   {
     label: "控制面板",
     href: "/dash",
-    icon: <Home className="h-5 w-5" />,
+    icon: <Home className="h-5 w-5 shrink-0" />,
   },
   {
     label: "题库管理",
     href: "/q",
-    icon: <Book className="h-5 w-5" />,
+    icon: <Book className="h-5 w-5 shrink-0" />,
     children: [
       {
         label: "题目列表",
@@ -33,12 +33,12 @@ export const menuItems: MenuItem[] = [
   {
     label: "用户管理",
     href: "/users",
-    icon: <Users className="h-5 w-5" />,
+    icon: <Users className="h-5 w-5 shrink-0" />,
   },
   {
     label: "设置",
     href: "/settings",
-    icon: <Settings className="h-5 w-5" />,
+    icon: <Settings className="h-5 w-5 shrink-0" />,
     children: [
       {
         label: "个人信息",

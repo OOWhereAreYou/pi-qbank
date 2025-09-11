@@ -4,15 +4,15 @@ import { withErrorHandler } from "../lib/error-handler";
 import { PopulatedPaperQuestion } from "./paper-question";
 
 export interface PopulatedQuestion extends Question {
-  children: PopulatedQuestion[];
-  parent: PopulatedQuestion | null;
+  children?: Partial<PopulatedQuestion>[] | null;
+  parent?: PopulatedQuestion | null;
   meta: QustionMeta | null;
-  paperQuestions: PopulatedPaperQuestion[];
+  paperQuestions?: PopulatedPaperQuestion[] | null;
 }
 
 export type QustionMeta = {
   answer?: string;
-  options?: QuestionType[];
+  options?: QuestionOption[];
 };
 
 export type QuestionOption = {
@@ -33,8 +33,11 @@ const QuestionServiceBase = {
     }
     return question as PopulatedQuestion;
   },
-  create: async (data: Prisma.QuestionCreateInput) => {
-    return await prisma.question.create({
+  create: async (
+    data: Prisma.QuestionCreateInput,
+    tx?: Prisma.TransactionClient
+  ) => {
+    return await (tx ?? prisma).question.create({
       data,
     });
   },
@@ -52,17 +55,104 @@ const QuestionServiceBase = {
       total,
     };
   },
-  update: async (id?: string, data?: Prisma.QuestionUpdateInput) => {
-    return await prisma.question.update({
+
+  update: async (
+    id?: string,
+    data?: Prisma.QuestionUpdateInput,
+    tx?: Prisma.TransactionClient
+  ) => {
+    return await (tx ?? prisma).question.update({
       where: { id },
       data: {
         ...(data ?? {}),
+      },
+      include: {
+        children: true,
       },
     });
   },
   delete: async (id?: string) => {
     return await prisma.question.delete({
       where: { id },
+    });
+  },
+  save: async (data: Partial<PopulatedQuestion>) => {
+    const {
+      id,
+      children,
+      createdAt,
+      updatedAt,
+      paperQuestions,
+      parent,
+      meta,
+      parentId,
+      ...rest
+    } = data;
+
+    const updateData = {
+      ...rest,
+      meta: meta ?? {},
+    };
+
+    const existChildrenIds = id
+      ? (
+          await prisma.question.findMany({
+            where: {
+              parentId: id,
+            },
+          })
+        ).map((child) => child.id)
+      : [];
+
+    let toUpdateChildren = [];
+    let toCreateChildren = [];
+    let toDeleteChildren = existChildrenIds.filter(
+      (id) => !children?.some((child) => child.id === id)
+    );
+
+    for (const child of children ?? []) {
+      const {
+        id: childId,
+        children,
+        createdAt,
+        updatedAt,
+        paperQuestions,
+        parent,
+        meta,
+        parentId,
+        ...childRest
+      } = child;
+      if (childId) {
+        toUpdateChildren.push({
+          ...childRest,
+          id: childId,
+        });
+      } else {
+        toCreateChildren.push(childRest);
+      }
+    }
+    return await prisma.question.upsert({
+      where: { id: id ?? "" },
+      create: {
+        ...updateData,
+        children: {
+          create: toCreateChildren,
+        },
+      },
+      update: {
+        ...updateData,
+        children: {
+          deleteMany: toDeleteChildren.map((id) => ({ id })),
+          update: toUpdateChildren.map(({ id, ...rest }) => ({
+            where: { id },
+            data: rest,
+          })),
+          create: toCreateChildren,
+        },
+      },
+      include: {
+        children: true,
+      },
     });
   },
 };
