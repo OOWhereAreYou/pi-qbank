@@ -11,13 +11,19 @@ export interface PopulatedQuestion extends Question {
 }
 
 export type QustionMeta = {
-  answer?: string;
   options?: QuestionOption[];
+  answer?: string;
+  analysis?: string;
+  contentImgs?: string[];
+  answerImgs?: string[];
+  analysisImgs?: string[];
+  order?: number;
 };
 
 export type QuestionOption = {
   label: string;
   isAnswer: boolean;
+  img?: string;
 };
 
 const QuestionServiceBase = {
@@ -79,7 +85,7 @@ const QuestionServiceBase = {
   save: async (data: Partial<PopulatedQuestion>) => {
     const {
       id,
-      children,
+      children: _children,
       createdAt,
       updatedAt,
       paperQuestions,
@@ -93,6 +99,13 @@ const QuestionServiceBase = {
       ...rest,
       meta: meta ?? {},
     };
+    const children = _children?.map((child, index) => ({
+      ...child,
+      meta: {
+        ...(child.meta ?? {}),
+        order: index + 1,
+      },
+    }));
 
     const existChildrenIds = id
       ? (
@@ -118,7 +131,6 @@ const QuestionServiceBase = {
         updatedAt,
         paperQuestions,
         parent,
-        meta,
         parentId,
         ...childRest
       } = child;
@@ -128,7 +140,7 @@ const QuestionServiceBase = {
           id: childId,
         });
       } else {
-        toCreateChildren.push(childRest);
+        toCreateChildren.push({ ...childRest });
       }
     }
     return await prisma.question.upsert({

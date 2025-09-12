@@ -26,7 +26,7 @@ export const ViewComponent = ({ defaultValue }: IProps) => {
 
   return (
     <div className="space-y-4 m-auto w-2xl">
-      <div className="bg-card p-4 flex items-center justify-between sticky top-0">
+      <div className="rounded bg-card p-4 flex items-center justify-between sticky top-0 border border-muted-foreground/10">
         <SearchInput
           onSearch={onSearch}
           onClear={() => onSearch(null)}

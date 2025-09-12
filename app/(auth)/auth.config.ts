@@ -4,7 +4,7 @@ import NextAuth, {
   User as NextAuthUser,
 } from "next-auth";
 
-const protectedPages = ["/dash"];
+const protectedPages = ["/dash", "/q"];
 
 export type AuthUser = NextAuthUser;
 

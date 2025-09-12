@@ -9,3 +9,9 @@ export const questionTypeNames: Record<QuestionType, string> = {
   ESSAY: "简答题",
   COMPOUND: "复合题",
 };
+
+export const difficultyMap: Record<number, string> = {
+  1: "简单",
+  2: "中等",
+  3: "困难",
+};

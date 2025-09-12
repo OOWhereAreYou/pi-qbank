@@ -11,6 +11,11 @@ export const metaScheme = z
   .object({
     answer: z.string().optional(),
     options: z.array(optionSchema).optional(),
+    analysis: z.string().optional(),
+    contentImgs: z.array(z.string()).optional(),
+    answerImgs: z.array(z.string()).optional(),
+    analysisImgs: z.array(z.string()).optional(),
+    order: z.number().optional(),
   })
   .nullable()
   .optional();
@@ -27,7 +32,6 @@ export const baseQuestionSchema = z.object({
   source: z.string().nullable().optional(),
   grade: z.number().nullable().optional(),
   subject: z.string().nullable().optional(),
-  analysis: z.string().nullable().optional(),
   content: z.string().min(1, { message: "题干不能为空" }).nullable().optional(),
   type: z.enum(typeEnum).nullable().optional(),
   meta: metaScheme,

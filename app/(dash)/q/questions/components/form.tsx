@@ -23,6 +23,7 @@ import {
 } from "@/components/widgets/form-item";
 import { questionTypeNames } from "@/lib/enum";
 import { questionFormSchema, QuestionFormValues } from "./schema";
+import { DropdownButton } from "@/components/widgets/dropdown-button";
 
 type QuestionFormType = UseFormReturn<QuestionFormValues>;
 
@@ -68,14 +69,15 @@ const ChoiceOptionsForm = ({
             name={`${namePrefix}.options.${index}.isAnswer`}
             label="正确"
           />
-          <Button
-            type="button"
-            variant="destructive"
-            size="sm"
-            onClick={() => remove(index)}
-          >
-            删除
-          </Button>
+          <DropdownButton
+            options={[
+              {
+                label: "删除",
+                onClick: () => remove(index),
+                variant: "destructive",
+              },
+            ]}
+          />
         </div>
       ))}
       <Button
@@ -150,7 +152,7 @@ const SimpleQuestionDetails = ({
       {type === "FILL" && <FillAnswerForm namePrefix="meta" />}
 
       <TextareaForm
-        name="analysis"
+        name="meta.analysis"
         label="解析"
         placeholder="请输入题目解析"
         rows={3}
@@ -185,7 +187,7 @@ const SubQuestionList = ({ form }: { form: QuestionFormType }) => {
             append({
               type: QuestionType.SINGLE,
               content: "",
-              meta: { options: [] },
+              meta: { options: [], order: fields.length + 1 },
             })
           }
         >
@@ -198,7 +200,9 @@ const SubQuestionList = ({ form }: { form: QuestionFormType }) => {
             key={field.id}
             form={form}
             index={index}
-            onRemove={() => remove(index)}
+            onRemove={() => {
+              remove(index);
+            }}
             options={subQuestionTypeOptions}
           />
         ))}
@@ -234,14 +238,15 @@ const SubQuestionItem = ({
     <div className="space-y-6 rounded-md border bg-slate-50 p-6">
       <div className="flex items-center justify-between">
         <h4 className="text-lg font-semibold">子题 {index + 1}</h4>
-        <Button
-          type="button"
-          variant="destructive"
-          size="sm"
-          onClick={onRemove}
-        >
-          删除子题
-        </Button>
+        <DropdownButton
+          options={[
+            {
+              label: "删除",
+              onClick: onRemove,
+              variant: "destructive",
+            },
+          ]}
+        />
       </div>
       <SelectForm
         name={`children.${index}.type`}
@@ -269,7 +274,7 @@ const SubQuestionItem = ({
       )}
 
       <TextareaForm
-        name={`children.${index}.analysis`}
+        name={`children.${index}.meta.analysis`}
         label="解析"
         placeholder="请输入题目解析"
         rows={3}
@@ -288,6 +293,9 @@ export const QuestionForm = forwardRef<QuestionFormRef, QuestionFormProps>(
       resolver: zodResolver(questionFormSchema),
       defaultValues: {
         ...initialData,
+        children: initialData?.children?.sort(
+          (a, b) => (a.meta?.order ?? 0) - (b.meta?.order ?? 0)
+        ),
       },
     });
 

@@ -1,25 +1,41 @@
 "use server";
 
-import { z } from "zod";
+import { PaperService } from "@/server/service/paper";
 
-const schema = z.object({
-  question: z.string(),
-  optionA: z.string(),
-  optionB: z.string(),
-  optionC: z.string(),
-  optionD: z.string(),
-  answer: z.string(),
-});
+export const createPaper = PaperService.create;
 
-export async function createQuestion(formData: FormData) {
-  const parsed = schema.parse({
-    question: formData.get("question"),
-    optionA: formData.get("optionA"),
-    optionB: formData.get("optionB"),
-    optionC: formData.get("optionC"),
-    optionD: formData.get("optionD"),
-    answer: formData.get("answer"),
+export const listPapers = async (
+  page: number = 1,
+  pageSize: number = 20,
+  search?: string
+) => {
+  return await PaperService.list({
+    skip: (page - 1) * pageSize,
+    take: pageSize,
+    where: {
+      OR: search
+        ? [
+            {
+              id: {
+                contains: search,
+              },
+            },
+            {
+              name: {
+                contains: search,
+              },
+            },
+          ]
+        : undefined,
+    },
+    orderBy: {
+      updatedAt: "desc",
+    },
   });
+};
 
-  console.log(parsed);
-}
+export const deletePaper = PaperService.delete;
+
+export const updatePaper = PaperService.update;
+
+export const getPaper = PaperService.get;

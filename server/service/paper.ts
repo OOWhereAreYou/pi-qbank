@@ -18,8 +18,23 @@ export type PaperStructure = {
     score: number;
   }[];
 };
-
 const PaperServiceBase = {
+  get: async (id: string) => {
+    const paper = await prisma.paper.findUnique({
+      where: { id },
+      include: {
+        paperQuestions: {
+          include: {
+            question: true,
+          },
+        },
+      },
+    });
+    if (!paper) {
+      throw new Error("试卷不存在");
+    }
+    return paper as unknown as PopulatedPaper;
+  },
   create: async (data: Prisma.PaperCreateInput) => {
     return await prisma.paper.create({
       data,
@@ -35,7 +50,7 @@ const PaperServiceBase = {
       prisma.paper.count({ where }),
     ]);
     return {
-      records,
+      records: records as unknown as PopulatedPaper[],
       total,
     };
   },

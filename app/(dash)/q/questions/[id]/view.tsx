@@ -23,24 +23,23 @@ export const ViewCOmponent = ({ defaultValue }: IProps) => {
     if (!trigger || !values) return;
     startLoading();
     const result = await saveQuestion(nullsToUndefined(values));
+    endLoading();
     toast[result.status](result.message);
     if (result.status === "success") {
-      formRef.current?.form().setValue("id", result.data?.id);
       router.replace(`/q/questions/${result.data?.id}`);
       return;
     }
-    endLoading();
   };
 
   return (
     <div className="m-auto w-2xl space-y-2">
-      <div className="flex justify-end bg-card p-4 rounded sticky top-0 gap-2">
+      <div className="flex justify-end bg-card p-4 rounded sticky top-0 gap-2 border border-muted-foreground/10">
         <Button variant="secondary" onClick={router.back}>
           返回
         </Button>
         <Button onClick={onSave}>保存</Button>
       </div>
-      <div className="bg-card p-4 rounded">
+      <div className="bg-card p-4 rounded border border-muted-foreground/10">
         <QuestionForm ref={formRef} initialData={defaultValue} />
       </div>
     </div>

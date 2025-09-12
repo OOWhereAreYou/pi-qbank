@@ -3,10 +3,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/widgets/copy-button";
 import { DropdownButton } from "@/components/widgets/dropdown-button";
+import { MdRender } from "@/components/widgets/md-render";
 import { questionTypeNames } from "@/lib/enum";
 import { PopulatedQuestion } from "@/server/service/question";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { getQuetionStr } from "./question-utils";
+import { useMemo } from "react";
+import { toast } from "sonner";
 
 type IProps = {
   item: PopulatedQuestion;
@@ -17,9 +20,15 @@ type IProps = {
 export const QuestionCard = ({ item, index, onDelete }: IProps) => {
   const router = useRouter();
   const { openDialog } = useDialog();
+  const questionStr = useMemo(() => {
+    return getQuetionStr(item, {
+      hasAnswer: true,
+      hasAnalysis: true,
+    });
+  }, [item]);
   return (
     <div className="border rounded bg-card space-y-2">
-      <div className="flex items-center gap-2 px-4 py-1 bg-muted justify-between">
+      <div className="flex items-center gap-2 px-4 py-1 bg-muted/50 justify-between">
         <Badge variant={"outline"}>
           {questionTypeNames[item.type ?? "ESSAY"]}
         </Badge>
@@ -37,6 +46,13 @@ export const QuestionCard = ({ item, index, onDelete }: IProps) => {
               },
             },
             {
+              label: "复制",
+              onClick: async () => {
+                await navigator.clipboard.writeText(questionStr);
+                toast.success("复制成功");
+              },
+            },
+            {
               label: "删除",
               variant: "destructive",
               onClick: () => {
@@ -44,7 +60,6 @@ export const QuestionCard = ({ item, index, onDelete }: IProps) => {
                   title: "删除",
                   content: <p>确定要删除此题目吗？</p>,
                   onConfirm: () => {
-                    console.log("删除");
                     onDelete?.();
                   },
                 });
@@ -54,8 +69,7 @@ export const QuestionCard = ({ item, index, onDelete }: IProps) => {
         />
       </div>
       <div className="px-4">
-        <span>{index + 1}.</span>
-        <span>{item.content}</span>
+        <MdRender md={`${index + 1}.&nbsp;${questionStr}`} />
       </div>
       <div></div>
     </div>

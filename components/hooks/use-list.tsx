@@ -53,8 +53,6 @@ export const useList = <T,>({
         setCurrent(p ?? current);
         setSearchTerm(term === null ? undefined : term ?? searchTerm);
       }
-
-      console.log(res);
       return res;
     } finally {
       setLoading(false);

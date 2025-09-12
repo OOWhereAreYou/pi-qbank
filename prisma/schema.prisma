@@ -29,8 +29,6 @@ model Question {
     id              String        @id @default(cuid())
     // 题干
     content         String?
-    // 解析
-    analysis        String?
     //题型
     type            QuestionType?
     //不同题型的元信息，比如单选、多选、不定项有选项，判断题有对错，填空题有答案，简答题没有

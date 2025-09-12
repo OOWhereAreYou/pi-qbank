@@ -85,9 +85,7 @@ export const DialogProvider = ({ children }: { children: React.ReactNode }) => {
     if (dialog.onCancel) {
       dialog.onCancel();
     }
-    if (!dialog.manualClose) {
-      setDialog((prev) => ({ ...prev, isOpen: false }));
-    }
+    setDialog((prev) => ({ ...prev, isOpen: false }));
   };
 
   return (
